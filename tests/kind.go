@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"fmt"
 	"html/template"
+	"io"
 	"io/ioutil"
 	"log"
 	"net"
@@ -32,7 +33,7 @@ const (
 var (
 	must = shx.CommandBuilder{StopOnError: true}
 
-	//go:embed kind.config.yaml
+	//go:embed kind.config.yaml.tmpl
 	templateKindConfig string
 
 	//go:embed local-registry.yaml
@@ -105,7 +106,7 @@ func CreateTestCluster() {
 	}
 
 	os.Setenv("KUBECONFIG", filepath.Join(pwd(), Kubeconfig))
-	kindCfgTmpl, err := template.New("kind.config.yaml").Parse(templateKindConfig)
+	kindCfgTmpl, err := template.New("kind.config.yaml").Parse(getKindConfigTemplate())
 	if err != nil {
 		mgx.Must(fmt.Errorf("error parsing EnsureKind config template: %w", err))
 	}
@@ -184,4 +185,19 @@ func getKindClusterName() string {
 		return name
 	}
 	return DefaultKindClusterName
+}
+
+func getKindConfigTemplate() string {
+	if name, ok := os.LookupEnv("KIND_CFG_TEMPLATE"); ok {
+		data, err := os.Open(name)
+		if err != nil {
+			mgx.Must(fmt.Errorf("error reading kind config template from %s: %w", name, err))
+		}
+		kindConfigTemplate, err := io.ReadAll(data)
+		if err != nil {
+			mgx.Must(fmt.Errorf("error reading kind config template from %s: %w", name, err))
+		}
+		return string(kindConfigTemplate)
+	}
+	return templateKindConfig
 }

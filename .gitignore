@@ -1,1 +1,3 @@
 /bin/
+tests/kind.config
+tests/kind.config.yaml

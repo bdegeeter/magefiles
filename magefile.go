@@ -25,5 +25,5 @@ func Test() {
 	// Set up the bin with porter installed, tests can use that to initialize their local test bin to save time re-downloading it
 	mg.SerialDeps(porter.UseBinForPorterHome, porter.EnsurePorter)
 
-	must.RunV("go", "test", "./...")
+	must.RunV("go", "test", "-timeout=2m", "./...")
 }
