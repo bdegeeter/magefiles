@@ -51,6 +51,12 @@ func BuildClient(pkg string, name string, binDir string) error {
 	return build(pkg, name, outPath, runtime.GOOS, runtime.GOARCH)
 }
 
+func BuildService(pkg string, name string, binDir string) error {
+	name = name + "-service"
+	outPath := filepath.Join(binDir, name)
+	return build(pkg, name, outPath, runtime.GOOS, runtime.GOARCH)
+}
+
 func BuildAll(pkg string, name string, binDir string) error {
 	var g errgroup.Group
 	g.Go(func() error {
@@ -59,6 +65,12 @@ func BuildAll(pkg string, name string, binDir string) error {
 	g.Go(func() error {
 		return BuildRuntime(pkg, name, binDir)
 	})
+	if name == "porter" {
+		g.Go(func() error {
+			return BuildService(pkg, name, binDir)
+		})
+
+	}
 	return g.Wait()
 }
 
